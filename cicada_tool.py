@@ -69,7 +69,7 @@ def browse_wav_files():
 	"""
     filename = filedialog.askdirectory()
     global FOLDER_WAV_FILES
-    FOLDER_WAV_FILES = glob.glob(filename+"/*.WAV")
+    FOLDER_WAV_FILES = glob.glob(filename+"/*.WAV") + glob.glob(filename+"/*.wav")
     if len(FOLDER_WAV_FILES) == 0:
         messagebox.showerror("Error", "No Wav Files in Given path")
     else:
