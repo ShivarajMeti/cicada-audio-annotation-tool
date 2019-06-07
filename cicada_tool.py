@@ -3,6 +3,9 @@ from tkinter import *
 from PIL import ImageTk, Image
 from tkinter import filedialog
 import glob
+import os
+import csv
+import pandas as pd
 import subprocess
 from pygame import mixer
 from tkinter import messagebox
@@ -28,16 +31,18 @@ HEADER_FONT_STYLE = ("Arial Bold", 30, "bold")
 FONT_STYLE_BUTTON = ("Arial Bold", 20, "bold")
 
 # On increasing these values window size shrinks
-INITIAL_HEIGHT_ADJUST = 250
-INITIAL_WIDTH_ADJUST = 80
+INITIAL_HEIGHT_ADJUST = 1200
+INITIAL_WIDTH_ADJUST = 800
 
 # On increasing these values window size enlarges
-FINAL_HEIGHT_ADJUST = 100
-FINAL_WIDTH_ADJUST = 500
+FINAL_HEIGHT_ADJUST = 1500
+FINAL_WIDTH_ADJUST = 1500
 
 #Height and width of buttons
 BUTTONS_HEIGHT = 2
 BUTTONS_WIDTH = 20
+
+CSV_FILENAME = "ANNOTATIONS_FILE.csv"
 
 ###############################################################
            #Initaliazing Tkinter  Window#
@@ -47,9 +52,9 @@ root = tk.Tk()
 proc = subprocess.Popen(["xrandr  | grep \* | cut -d' ' -f4"], stdout=subprocess.PIPE, shell=True)
 (OUT, ERR) = proc.communicate()
 OUT = str(OUT).split("x")
-HEIGHT_SIZE = str(int(int(OUT[0])/2)-INITIAL_HEIGHT_ADJUST)
-WIDTH_SIZE = str(int(int(OUT[1])/2)-INITIAL_WIDTH_ADJUST)
-root.geometry(HEIGHT_SIZE+"x"+WIDTH_SIZE)
+# HEIGHT_SIZE = str(int(int(OUT[0])/2)-INITIAL_HEIGHT_ADJUST)
+# WIDTH_SIZE = str(int(int(OUT[1])/2)-INITIAL_WIDTH_ADJUST)
+root.geometry(str(INITIAL_HEIGHT_ADJUST)+"x"+str(INITIAL_WIDTH_ADJUST))
 root.title("Cicada")
 root.resizable(0,0)
 
@@ -70,6 +75,15 @@ def browse_wav_files():
     filename = filedialog.askdirectory()
     global FOLDER_WAV_FILES
     FOLDER_WAV_FILES = glob.glob(filename+"/*.WAV") + glob.glob(filename+"/*.wav")
+    if os.path.exists(CSV_FILENAME):
+        annotated_files = pd.read_csv(CSV_FILENAME, error_bad_lines=False)
+        annotated_files = annotated_files['Filename'].values.tolist()
+        for i in FOLDER_WAV_FILES:
+            if i.split("/")[-1] in annotated_files:
+                FOLDER_WAV_FILES.remove(i)
+        print(len(FOLDER_WAV_FILES))
+    else:
+        pass   
     if len(FOLDER_WAV_FILES) == 0:
         messagebox.showerror("Error", "No Wav Files in Given path")
     else:
@@ -129,11 +143,13 @@ Label(root, text="File name Appears here", fg="green",
 ###############################################################
 def get_details():
     try:
-        total_annotations = len(glob.glob(FOLDER_TO_SAVE_ANNOTATIONS+"/*.pkl"))
+        # total_annotations = len(glob.glob(FOLDER_TO_SAVE_ANNOTATIONS+"/*.pkl"))
+        total_annotations = pd.read_csv(CSV_FILENAME, error_bad_lines=False)
+        total_annotations = len(total_annotations['Filename'].values.tolist())
         remaining_files = len(FOLDER_WAV_FILES) - (total_annotations)
         messagebox.showinfo("Details", "Total Annotations : " +str(total_annotations)+
                             "\n Total Remaining wav files: "+str(remaining_files))
-    except NameError:
+    except (NameError, FileNotFoundError):
         messagebox.showerror("Path not specified", "Give path for saving annotations")
 
 
@@ -149,10 +165,10 @@ DETAILS_BUTTON.grid(row=3, column=12, pady=10)
 def plot_wav_file(index_value, type_spec):
     """
 	Embedding the spectrogram
-	"""
-    HEIGHT_SIZE = str(int(int(OUT[0])/2)+FINAL_HEIGHT_ADJUST)
-    WIDTH_SIZE = str(int(int(OUT[1])/2)+FINAL_WIDTH_ADJUST)
-    root.geometry(HEIGHT_SIZE+"x"+WIDTH_SIZE)
+	# """
+ #    HEIGHT_SIZE = str(int(int(OUT[0])/2)+FINAL_HEIGHT_ADJUST)
+ #    WIDTH_SIZE = str(int(int(OUT[1])/2)+FINAL_WIDTH_ADJUST)
+    root.geometry(str(FINAL_HEIGHT_ADJUST)+"x"+str(FINAL_WIDTH_ADJUST))
 
     # root.geometry("1540x1450")
     fig = Figure(figsize=(9, 8), dpi=100)
@@ -295,9 +311,20 @@ def save_annotations(index_value):
 	Function to save the annotations
 	"""
     try:
-        with open(FOLDER_TO_SAVE_ANNOTATIONS+"/"+FOLDER_WAV_FILES[index_value].split("/")[-1][:-4]+".pkl", "wb") as file_obj:
-            pickle.dump(ANNOTATION_ENTRY_VAR.get().split(","), file_obj)
-        next_audio_update_index()
+        if os.path.exists(CSV_FILENAME):
+            with open(CSV_FILENAME, "a") as file_object:
+                wavfile_information_object = csv.writer(file_object)
+                wavfile_information_object.writerow([FOLDER_WAV_FILES[index_value].split("/")[-1]] + ANNOTATION_ENTRY_VAR.get().split(","))
+                print(FOLDER_WAV_FILES[index_value].split("/")[-1]+" - " '{}'.format(ANNOTATION_ENTRY_VAR.get().split(",")))
+
+        # with open(FOLDER_TO_SAVE_ANNOTATIONS+"/"+FOLDER_WAV_FILES[index_value].split("/")[-1][:-4]+".pkl", "wb") as file_obj:
+        #     pickle.dump(ANNOTATION_ENTRY_VAR.get().split(","), file_obj)
+        # next_audio_update_index()
+        else:
+            with open(CSV_FILENAME, "w") as file_object:
+                wavfile_information_object = csv.writer(file_object)
+                wavfile_information_object.writerow(["Filename","Label1","Label2","Label3","Label4"])
+                wavfile_information_object.writerow([FOLDER_WAV_FILES[index_value].split("/")[-1]]+ANNOTATION_ENTRY_VAR.get().split(","))
     except NameError:
         messagebox.showerror("No Path", "Specify path to save annotations!")
 
