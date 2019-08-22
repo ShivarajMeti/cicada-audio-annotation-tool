@@ -46,4 +46,3 @@ sip==4.19.8
 six==1.12.0
 sklearn==0.0
 termcolor==1.1.0
-Werkzeug==0.14.1
