@@ -6,7 +6,7 @@ grpcio==1.19.0
 html5lib==0.9999999
 idna==2.7
 kiwisolver==1.0.1
-lxml==4.3.2
+lxml==4.6.2
 Markdown==3.0.1
 matplotlib==3.0.3
 mock==2.0.0
