@@ -1,0 +1,12 @@
+{
+	"ButtonsParams":
+		{
+			"Height": 2, 
+			"Width":  20
+		},
+	"AnnotationsFile":
+		{
+			"ExistingAnnotationFile": "ExistingFile.csv",
+			"NewAnnotationFile": "NewAnnotationFile.csv"
+		}
+}
