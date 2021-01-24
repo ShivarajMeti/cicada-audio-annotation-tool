@@ -30,12 +30,13 @@ root = tk.Tk()
 # Make a frame and having it fill the whole root window using pack
 mainframe = tk.Frame(root)
 mainframe.pack(fill=tk.BOTH, expand=1)
+root.title("Cicada Audio Annotation Tool")
 
 
 ###############################################################
         #Reading configurations from JSON file#
 ###############################################################
-with open("config_app.json",'r') as jsonfile_obj:
+with open("cicada_app.json",'r') as jsonfile_obj:
     data_json = jsonfile_obj.read()
 datajson_obj = json.loads(data_json)
 BUTTONS_HEIGHT = datajson_obj['ButtonsParams']['Height']
